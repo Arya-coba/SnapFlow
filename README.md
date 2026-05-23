@@ -1,0 +1,2 @@
+# SnapFlow
+AI Workplace Assistant
