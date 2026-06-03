@@ -30,8 +30,8 @@ tanya jawab berbasis konten dokumen.
 ## Instalasi
 ```bash
 # Clone repository
-git clone https://github.com/[username]/clario.git
-cd clario
+git clone https://github.com/[username]/SnapFlow.git
+cd SnapFlow
 
 # Install dependencies
 pip install -r requirements.txt

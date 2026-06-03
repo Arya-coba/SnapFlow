@@ -51,3 +51,7 @@ Thumbs.db
 *.log
 logs/
 EOF
+
+echo "data/processed/*.csv" >> .gitignore
+echo "data/raw/*.csv" >> .gitignore
+echo "data/raw/json/" >> .gitignore
