@@ -12,7 +12,7 @@ load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ── Konstanta ─────────────────────────────────────────────────────────────────
-MODEL         = "llama3-8b-8192"   # model gratis di Groq
+MODEL         = "llama-3.1-8b-instant"   # model gratis di Groq
 MAX_TOKENS    = 1024
 TEMPERATURE   = 0.3                # rendah = output lebih konsisten
 
