@@ -15,7 +15,7 @@ load_dotenv()
 
 # ── Konstanta ─────────────────────────────────────────────────────────────────
 EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-LLM_MODEL       = "llama3-8b-8192"
+LLM_MODEL       = "llama-3.1-8b-instant"
 CHUNK_SIZE      = 512    # ukuran potongan teks per chunk
 CHUNK_OVERLAP   = 64     # overlap antar chunk agar konteks tidak putus
 TOP_K           = 3      # jumlah chunk paling relevan yang diambil
