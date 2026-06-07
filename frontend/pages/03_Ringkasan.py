@@ -1,5 +1,5 @@
 import streamlit as st
-import time
+import requests  
 
 from components.sidebar import show_sidebar
 
@@ -15,7 +15,7 @@ st.markdown("""
 # Header
 st.title("📝 Ringkasan Dokumen", anchor=False)
 st.caption(
-    "Ekstrak inti informasi dari teks panjang menjadi 3-5 poin penting dalam hitungan detik menggunakan AI."
+    "Ekstrak inti informasi dari teks panjang menjadi beberapa poin penting dalam hitungan detik menggunakan AI."
 )
 st.divider()
 
@@ -41,24 +41,38 @@ if st.button(
             "⚠️ Teks tidak boleh kosong! Silakan paste teks terlebih dahulu."
         )
 
-    else:
-        with st.spinner(
-            "Mengirim data ke Groq API (LLaMA 3) untuk diringkas..."
-        ):
-            time.sleep(1.5)
+    else:        
+        try:
+            with st.spinner(
+                "Mengirim data ke Groq API (LLaMA 3) untuk diringkas..."
+            ):                
+                url_backend = "http://localhost:8000/summarize"
+                payload = {"teks": teks_input}
+                
+                response = requests.post(url_backend, json=payload)
 
-        st.success("✅ Ringkasan berhasil dibuat!")
-        st.write("")
+            # Cek apakah respons dari backend sukses (status code 200)
+            if response.status_code == 200:
+                hasil_api = response.json()
+                # Ambil key hasil ringkasan dari backend (biasanya namanya 'summary')
+                ringkasan_text = hasil_api.get("summary", "Tidak ada ringkasan yang dikembalikan.")
+                
+                st.success("✅ Ringkasan berhasil dibuat!")
+                st.write("")
 
-        st.subheader("📋 Hasil Ringkasan", anchor=False)
+                st.subheader("📋 Hasil Ringkasan", anchor=False)
 
-        with st.container(border=True):
-            st.caption("EKSTRAKSI POIN UTAMA")
-
-            st.markdown("""
-            * **Konteks:** Dokumen membahas evaluasi kinerja operasional kuartal kedua dan dampaknya terhadap produktivitas tim IT.
-
-            * **Temuan Utama:** Terjadi peningkatan waktu respons IT sebesar 15% sejak implementasi sistem penyortiran dokumen secara manual bulan lalu.
-
-            * **Tindak Lanjut:** Direkomendasikan untuk segera mengimplementasikan AI Workplace Assistant guna mengotomasi klasifikasi tiket mulai minggu depan.
-            """)
+                with st.container(border=True):
+                    st.caption("EKSTRAKSI POIN UTAMA")                    
+                    
+                    # Looping poin-poin agar rapi ke bawah
+                    if isinstance(ringkasan_text, list):
+                        for poin in ringkasan_text:
+                            st.markdown(f"- {poin}")
+                    else:
+                        st.markdown(ringkasan_text)
+            else:
+                st.error(f"❌ Gagal memproses data. Backend merespons dengan status: {response.status_code}")
+                
+        except requests.exceptions.ConnectionError:
+            st.error("❌ Tidak dapat terhubung ke Backend! Pastikan perintah `uvicorn` lo udah dinyalain di port 8000.")
