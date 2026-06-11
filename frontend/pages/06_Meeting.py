@@ -1,5 +1,5 @@
 import streamlit as st
-import time
+import requests  
 
 from components.sidebar import show_sidebar
 
@@ -9,6 +9,18 @@ st.markdown("""
 <style>
     [data-testid="stHeader"] {display: none;}
     .block-container { padding-top: 2rem !important; }
+    
+    /* ☀️ CSS CUSTOM BIAR TETEP TEMA TERANG DAN OTOMATIS TURUN KE BAWAH */
+    .custom-text-box {
+        white-space: pre-wrap;       
+        word-wrap: break-word;              
+        color: #1E293B;             
+        background-color: #FFFFFF;   
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #E2E8F0;   /* Garis tepi abu-abu tipis */
+        line-height: 1.6;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -41,64 +53,34 @@ if st.button(
         )
 
     else:
-        with st.spinner(
-            "Mengekstrak insight dari rapat menggunakan Groq API (LLaMA 3)..."
-        ):
-            time.sleep(1.5)
+        try:
+            with st.spinner(
+                "Mengekstrak insight dari rapat menggunakan Groq API (LLaMA 3)..."
+            ):                
+                url_backend = "http://localhost:8000/meeting"
+                payload = {"teks": transkrip_input}
+                
+                response = requests.post(url_backend, json=payload)
 
-        st.success("✅ Notulensi berhasil disusun!")
-        st.write("")
-
-        st.subheader("📋 Hasil Ekstraksi AI", anchor=False)
-
-        with st.container(border=True):
-
-            # Daftar peserta
-            st.caption("👥 DAFTAR PESERTA TERDETEKSI")
-
-            badge_style = (
-                "background-color: #E6F8F3; "
-                "color: #10B981; "
-                "padding: 4px 12px; "
-                "border-radius: 6px; "
-                "font-size: 13px; "
-                "font-weight: 600; "
-                "border: 1px solid #A7F3D0; "
-                "margin-right: 8px;"
-            )
-
-            st.markdown(f"""
-            <span style="{badge_style}">Rizqiyah</span>
-            <span style="{badge_style}">Juniarti S. D.</span>
-            <span style="{badge_style}">Arya C. F.</span>
-            """, unsafe_allow_html=True)
-
-            st.write("")
-            st.write("")
-
-            # Ringkasan rapat
-            st.caption("📝 RINGKASAN EKSEKUTIF")
-
-            st.markdown("""
-            Rapat berfokus pada evaluasi progres mingguan WorkSenseAI dan pembagian peran spesifik untuk fase *deployment* ke Hugging Face Spaces. Dibahas pula kendala integrasi antara UI antarmuka dan *endpoint* API, serta penentuan tenggat waktu pengujian akhir (*User Acceptance Testing*) sebelum diserahkan.
-            """)
-
-            st.write("")
-
-            # Keputusan rapat
-            st.caption("⚖️ KEPUTUSAN (DECISIONS)")
-
-            st.markdown("""
-            * Sistem aplikasi akan di-*deploy* dengan masa *handover* awal selama 1 bulan.
-            * Layout antarmuka resmi menggunakan gaya *Soft Minimalist* (Light Theme) dengan aksen *emerald green*, batal menggunakan *Dark Mode*.
-            """)
-
-            st.write("")
-
-            # Tugas lanjutan
-            st.caption("🎯 ACTION ITEMS (TUGAS LANJUTAN)")
-
-            st.markdown("""
-            * **Rizqiyah:** Menyelesaikan integrasi UI Streamlit dengan *endpoint* FastAPI paling lambat Jumat.
-            * **Tim Backend:** Memastikan fungsi RAG menggunakan FAISS *vector database* berjalan lancar tanpa *delay* berlebih.
-            """)
+            # Cek apakah respons dari backend sukses (status code 200)
+            if response.status_code == 200:
+                hasil_api = response.json()
+                
+                # Ambil format teks cakep ber-emoji dari backend punya Arya
+                formatted_text = hasil_api.get("formatted", "")
+                
+                st.success("✅ Notulensi berhasil disusun!")
+                st.write("")
+                st.subheader("📋 Hasil Ekstraksi AI", anchor=False)
+                
+                # Ditampilkan pake HTML custom agar dipaksa turun ke bawah kodenya
+                if formatted_text:
+                    st.markdown(f'<div class="custom-text-box">{formatted_text}</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(str(hasil_api))
+                                
+            else:
+                st.error(f"❌ Gagal memproses transkrip. Backend merespons dengan status: {response.status_code}")
+                
+        except requests.exceptions.ConnectionError:
+            st.error("❌ Tidak dapat terhubung ke Backend! Pastikan perintah `uvicorn` lo udah dinyalain di port 8000.")

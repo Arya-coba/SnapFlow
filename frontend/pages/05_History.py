@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests  
 
 from components.sidebar import show_sidebar
 
@@ -8,7 +9,7 @@ show_sidebar()
 # Header
 st.title("🗂️ Riwayat Dokumen", anchor=False)
 st.caption(
-    "Telusuri dan kelola arsip dokumen yang telah diproses oleh antarmuka WorkSenseAI."
+    "Telusuri dan kelola arsip dokumen yang telah diproses oleh antarmuka SnapFLow."
 )
 st.divider()
 
@@ -47,69 +48,69 @@ with col_prio:
 
 st.write("")
 
-# Data dokumen
-data = {
-    "Tanggal": [
-        "2026-06-03 07:15",
-        "2026-06-02 14:30",
-        "2026-06-02 09:10",
-        "2026-06-01 16:45",
-        "2026-05-30 11:20"
-    ],
-    "Nama Dokumen": [
-        "Server_Down_Report.txt",
-        "Cuti_Tahunan_Staf.pdf",
-        "Revisi_SOP_Keamanan.pdf",
-        "Invoice_Layanan_Cloud.pdf",
-        "Pengadaan_Router.txt"
-    ],
-    "Kategori": [
-        "Tiket IT",
-        "Email HR",
-        "SOP",
-        "Laporan Keuangan",
-        "Permintaan Pengadaan"
-    ],
-    "Prioritas": [
-        "🔴 Tinggi",
-        "🟢 Rendah",
-        "🟡 Sedang",
-        "🔴 Tinggi",
-        "🟡 Sedang"
-    ],
-    "Akurasi AI": [
-        "98",
-        "95",
-        "89",
-        "92",
-        "94"
-    ]
-}
 
-df = pd.DataFrame(data)
+data_dokumen = []
 
-# Konversi tipe data
-df["Akurasi AI"] = pd.to_numeric(df["Akurasi AI"])
-df["Tanggal"] = pd.to_datetime(df["Tanggal"])
+try:
+    # Tembak API history backend 
+    response = requests.get("http://localhost:8000/history/documents")
+    
+    if response.status_code == 200:
+        # Mengambil list data asli dari database SQLite backend
+        data_backend = response.json()  
+        
+        # Amankan jika data_backend dibungkus dictionary bawaan kelompok
+        if isinstance(data_backend, dict):
+            documents_list = data_backend.get("documents", data_backend.get("data", []))
+        else:
+            documents_list = data_backend
+        
+        for item in documents_list:
+            # ── FIX DI SINI: Jika data berupa string polos, jangan pakai .get() ──
+            if isinstance(item, str):
+                data_dokumen.append({
+                    "Tanggal": "2026-06-06 00:00",
+                    "Nama Dokumen": item if item else "Teks Input Manual",
+                    "Kategori": "Uncategorized",
+                    "Prioritas": "🟡 Sedang",
+                    "Akurasi AI": 0
+                })
+            # ── Jika berupa dictionary normal, tetap pakai .get() bawaan lo ──
+            else:
+                data_dokumen.append({
+                    "Tanggal": item.get("processed_at", item.get("Tanggal", "2026-06-06 00:00")),
+                    "Nama Dokumen": item.get("filename", item.get("Nama Dokumen", "Unknown_File.pdf")),
+                    "Kategori": item.get("category", item.get("Kategori", "Uncategorized")),
+                    "Prioritas": item.get("priority", item.get("Prioritas", "🟡 Sedang")),
+                    "Akurasi AI": item.get("accuracy", item.get("Akurasi AI", 0))
+                })
+    else:
+        st.error(f"⚠️ Gagal menarik riwayat. Backend merespons status: {response.status_code}")
 
-# Filter data
-if search_query:
-    df = df[
-        df["Nama Dokumen"].str.contains(
-            search_query,
-            case=False
-        )
-    ]
+except requests.exceptions.ConnectionError:
+    st.error("❌ Gagal terhubung ke Backend! Menampilkan data kosong. Nyalain `uvicorn` dulu ya Al.")
 
-if filter_kategori != "Semua":
-    df = df[
-        df["Kategori"] == filter_kategori
-    ]
+# Jika data berhasil ditarik, masukkan ke DataFrame, kalau gagal/kosong buat tabel kosong biar gak crash
+if data_dokumen:
+    df = pd.DataFrame(data_dokumen)
+else:
+    # Fallback struktur kolom biar web-nya gak pecah pas pertama buka
+    df = pd.DataFrame(columns=["Tanggal", "Nama Dokumen", "Kategori", "Prioritas", "Akurasi AI"])
 
-if filter_prioritas != "Semua":
-    df = df[
-        df["Prioritas"] == filter_prioritas
-    ]
+# Konversi tipe data biar progress bar dan tanggalnya berfungsi normal
+if not df.empty:
+    df["Akurasi AI"] = pd.to_numeric(df["Akurasi AI"], errors='coerce').fillna(0)
+    df["Tanggal"] = pd.to_datetime(df["Tanggal"], errors='coerce').fillna(pd.Timestamp.now())
+
+    # Filter data berdasarkan inputan user di UI
+    if search_query:
+        df = df[df["Nama Dokumen"].str.contains(search_query, case=False, na=False)]
+
+    if filter_kategori != "Semua":
+        df = df[df["Kategori"] == filter_kategori]
+
+    if filter_prioritas != "Semua":
+        df = df[df["Prioritas"] == filter_prioritas]
 
 # Tabel dokumen
 st.subheader("📂 Arsip Tersimpan", anchor=False)
@@ -165,6 +166,7 @@ with col_btn2:
         use_container_width=True,
         disabled=len(baris_terpilih) == 0
     ):
+        
         st.success(
-            f"✅ Berhasil menghapus {len(baris_terpilih)} dokumen dari arsip SQLite!"
+            "✅ Berhasil menghapus dokumen dari arsip SQLite!"
         )
