@@ -16,6 +16,9 @@ accelerate==0.34.2
 evaluate==0.4.3
 scikit-learn==1.5.2
 numpy==1.26.4
+matplotlib==3.8.4
+seaborn==0.13.2
+wordcloud==1.9.3
 
 # ── NLP & Text Processing ─────────────────────────────────
 nltk==3.9.1
