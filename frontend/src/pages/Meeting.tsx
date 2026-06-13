@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { 
-  FileText, UploadCloud, Sparkles, ClipboardCheck, Check, 
+import {
+  FileText, UploadCloud, Sparkles, ClipboardCheck, Check,
   Target, Gavel, Users, FileUp, Tag, StickyNote,
   Copy, Download, Save // Tambahkan import icon baru
 } from 'lucide-react';
@@ -25,10 +25,10 @@ export default function Meeting() {
   // Tab State
   const [activeTab, setActiveTab] = useState<'text' | 'file'>('text');
   const [isDragOver, setIsDragOver] = useState(false);
-  
+
   // App State
   const [appState, setAppState] = useState<'empty' | 'loading' | 'result'>('empty');
-  const [inputText, setInputText] = useState(""); 
+  const [inputText, setInputText] = useState("");
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [isCopied, setIsCopied] = useState(false); // State untuk tombol copy
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -52,9 +52,9 @@ export default function Meeting() {
   // --- LOGIKA FILE UPLOAD ---
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragOver(true); };
   const handleDragLeave = () => setIsDragOver(false);
-  const handleDrop = (e: React.DragEvent) => { 
-    e.preventDefault(); 
-    setIsDragOver(false); 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       processFile(e.dataTransfer.files[0]);
     }
@@ -77,7 +77,7 @@ export default function Meeting() {
     }
 
     setUploadedFile(file);
-    
+
     if (file.type.includes("text") || file.name.endsWith('.txt') || file.name.endsWith('.vtt')) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -93,66 +93,83 @@ export default function Meeting() {
 
   // --- API CALL & DATA MAPPING ---
   const handleProcessMeeting = async () => {
-    if (activeTab === 'text' && !inputText.trim()) return;
+    // 1. Validasi Input berdasarkan Tab Aktif
+    if (activeTab === 'text' && !inputText.trim()) {
+      showToast("Teks transkrip tidak boleh kosong.");
+      return;
+    }
     if (activeTab === 'file' && !inputText.trim()) {
-      showToast("Teks transkrip kosong. Pastikan file terbaca.");
+      showToast("Teks transkrip file kosong. Pastikan file terunggah dan terbaca dengan benar.");
       return;
     }
 
     setAppState('loading');
 
     try {
+      // 2. Lakukan Fetch ke Backend FastAPI
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teks: inputText }),
+        body: JSON.stringify({
+          teks: inputText.trim(),
+          filename: activeTab === 'file' ? uploadedFile : "Teks Manual"
+        }),
       });
 
       const result = await response.json();
 
+      // 3. Validasi Respons HTTP & Atribut Sukses
       if (!response.ok || !result.success) {
-        throw new Error(result.error || "Gagal memproses transkrip rapat.");
+        throw new Error(result.detail || result.error || "Gagal memproses transkrip rapat.");
       }
 
       const meetingData = result.data;
 
+      // 4. Mapping Data ke State UI Frontend
       setRingkasan(meetingData.ringkasan || "Tidak ada ringkasan.");
       setTopikUtama(meetingData.topik_utama || []);
       setKeputusan(meetingData.keputusan || []);
-      
+
+      // Mapping Action Items / Tugas
       const mappedTasks: Task[] = (meetingData.action_items || []).map((item: any, index: number) => {
-        const taskText = item.deadline && item.deadline !== 'Tidak disebutkan' 
-          ? `${item.tugas} (Tenggat: ${item.deadline})` 
+        const hasDeadline = item.deadline && item.deadline !== 'Tidak disebutkan' && item.deadline !== '-';
+        const taskText = hasDeadline
+          ? `${item.tugas} (Tenggat: ${item.deadline})`
           : item.tugas;
 
         return {
           id: index + 1,
           text: taskText,
-          assignee: item.pic && item.pic !== 'Tidak disebutkan' ? item.pic : 'Tim',
+          assignee: item.pic && item.pic !== 'Tidak disebutkan' && item.pic !== '-' ? item.pic : 'Tim',
           done: false
         };
       });
       setTasks(mappedTasks);
-      
+
+      // Mapping Daftar Peserta / Anggota Rapat
       const mappedPeserta: Peserta[] = (meetingData.peserta || []).map((namaStr: string) => {
+        const namaBersih = namaStr.trim();
         return {
-          nama: namaStr,
-          peran: "Peserta", 
-          inisial: namaStr.trim().charAt(0).toUpperCase()
+          nama: namaBersih,
+          peran: "Peserta",
+          inisial: namaBersih.length > 0 ? namaBersih.charAt(0).toUpperCase() : "P"
         };
       });
       setPeserta(mappedPeserta);
 
-      setCatatanTambahan(meetingData.catatan_tambahan && meetingData.catatan_tambahan !== "Tidak disebutkan" 
-        ? meetingData.catatan_tambahan 
-        : ""
+      // Mapping Catatan Tambahan
+      setCatatanTambahan(
+        meetingData.catatan_tambahan && meetingData.catatan_tambahan !== "Tidak disebutkan" && meetingData.catatan_tambahan !== "-"
+          ? meetingData.catatan_tambahan
+          : ""
       );
-      
+
+      // 5. Pindahkan State Aplikasi ke Result
       setAppState('result');
-      showToast('Notulensi rapat berhasil dibuat!');
+      showToast('Notulensi rapat berhasil dibuat dan otomatis disimpan ke Riwayat Workspace!');
 
     } catch (error: any) {
-      console.error(error);
+      console.error("Error Processing Meeting:", error);
       showToast("Error: " + error.message);
       setAppState('empty');
     }
@@ -225,11 +242,6 @@ export default function Meeting() {
     showToast('File notulensi (.txt) berhasil diunduh!');
   };
 
-  const handleSave = () => {
-    // Simulasi penyimpanan database backend
-    showToast('Notulensi berhasil disimpan ke dalam menu Riwayat Workspace!');
-  };
-
 
   const avatarColors = [
     { bg: 'bg-[#EBF8FF]', border: 'border-[#BEE3F8]', text: 'text-[#2B6CB0]' },
@@ -241,7 +253,7 @@ export default function Meeting() {
 
   return (
     <div className="flex-1 flex flex-col pt-2 h-full animate-slide-up relative">
-      
+
       {/* Toast Notification */}
       {toast.visible && (
         <div className="fixed top-6 right-6 z-[100] bg-white px-5 py-3.5 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] border-l-4 border-[#38A169] flex items-center gap-3 animate-toast">
@@ -259,19 +271,19 @@ export default function Meeting() {
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row gap-6 h-[calc(100vh-180px)] min-h-[600px] pb-6">
-        
+
         {/* PANEL KIRI: INPUT TRANSKRIP */}
         <Card className="w-full lg:w-[40%] flex flex-col bg-white">
           <div className="flex px-6 pt-4 border-b border-gray-100 gap-6">
-            <button 
-              onClick={() => setActiveTab('text')} 
+            <button
+              onClick={() => setActiveTab('text')}
               className={`pb-3 flex items-center gap-2 text-[15px] font-semibold transition-all relative ${activeTab === 'text' ? 'text-[#F4A261]' : 'text-[#A0AEC0] hover:text-[#718096]'}`}
             >
               <FileText size={18} /> Teks Transkrip
               {activeTab === 'text' && <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#E88D67] rounded-t-full"></div>}
             </button>
-            <button 
-              onClick={() => setActiveTab('file')} 
+            <button
+              onClick={() => setActiveTab('file')}
               className={`pb-3 flex items-center gap-2 text-[15px] font-semibold transition-all relative ${activeTab === 'file' ? 'text-[#F4A261]' : 'text-[#A0AEC0] hover:text-[#718096]'}`}
             >
               <FileUp size={18} /> Unggah File
@@ -281,8 +293,8 @@ export default function Meeting() {
 
           {activeTab === 'text' && (
             <div className="flex-1 p-5 bg-[#FDFDF9]/50">
-              <textarea 
-                value={inputText} 
+              <textarea
+                value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Tempelkan hasil rekaman percakapan rapat atau catatan mentah di sini..."
                 className="w-full h-full bg-transparent border-0 focus:ring-0 resize-none outline-none text-[#4A5568] text-[14px] leading-[1.7] custom-scrollbar placeholder-[#CBD5E0]"
@@ -293,7 +305,7 @@ export default function Meeting() {
           {activeTab === 'file' && (
             <div className="flex-1 flex flex-col p-6">
               <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept=".txt,.vtt" className="hidden" />
-              <div 
+              <div
                 onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={triggerFileSelect}
                 className={`flex-1 border-2 border-dashed rounded-[16px] flex flex-col items-center justify-center p-6 transition-all duration-300 cursor-pointer ${isDragOver ? 'border-[#F4A261] bg-[#F4A261]/[0.05]' : 'border-[#CBD5E0] bg-gray-50/50 hover:border-[#F4A261]/50'}`}
               >
@@ -324,7 +336,7 @@ export default function Meeting() {
 
         {/* PANEL KANAN: BENTO GRID DASHBOARD */}
         <div className="w-full lg:w-[60%] flex flex-col h-full overflow-y-auto custom-scrollbar pr-2 relative z-0">
-          
+
           {appState === 'empty' && (
             <div className="flex-1 bg-white border border-gray-200 border-dashed rounded-[24px] flex flex-col items-center justify-center text-center p-8">
               <div className="w-20 h-20 rounded-full bg-[#F7FAFC] flex items-center justify-center mb-6 border border-gray-100 shadow-sm"><ClipboardCheck size={32} className="text-[#CBD5E0]" /></div>
@@ -335,47 +347,40 @@ export default function Meeting() {
 
           {(appState === 'loading' || appState === 'result') && (
             <div className="flex flex-col">
-              
+
               {/* TOOLBAR ATAS OUTPUT */}
               {appState === 'result' && (
                 <div className="flex justify-between items-center px-2 pb-4 mb-4 border-b border-gray-200/60 animate-slide-up">
-                    <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-[#F4A261]/10 rounded-md text-[#F4A261]">
-                            <Sparkles size={16} />
-                        </div>
-                        <h2 className="font-bold text-[16px] text-[#2D3748]">Hasil Notulensi</h2>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-[#F4A261]/10 rounded-md text-[#F4A261]">
+                      <Sparkles size={16} />
                     </div>
-                    <div className="flex items-center gap-2 bg-white shadow-sm p-1.5 rounded-lg border border-gray-100">
-                        <button 
-                            onClick={handleCopy} 
-                            className="p-1.5 text-[#718096] hover:text-[#2D3748] hover:bg-gray-50 rounded-md transition-all" 
-                            title="Salin ke Clipboard"
-                        >
-                            {isCopied ? <Check size={16} className="text-[#38A169]" /> : <Copy size={16} />}
-                        </button>
-                        <div className="w-[1px] h-4 bg-gray-200"></div>
-                        <button 
-                            onClick={handleDownload} 
-                            className="p-1.5 text-[#718096] hover:text-[#2D3748] hover:bg-gray-50 rounded-md transition-all" 
-                            title="Unduh (.txt)"
-                        >
-                            <Download size={16} />
-                        </button>
-                        <div className="w-[1px] h-4 bg-gray-200"></div>
-                        <button 
-                            onClick={handleSave} 
-                            className="p-1.5 text-[#718096] hover:text-[#F4A261] hover:bg-[#F4A261]/5 rounded-md transition-all" 
-                            title="Simpan ke Riwayat Workspace"
-                        >
-                            <Save size={16} />
-                        </button>
-                    </div>
+                    <h2 className="font-bold text-[16px] text-[#2D3748]">Hasil Notulensi</h2>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white shadow-sm p-1.5 rounded-lg border border-gray-100">
+                    <button
+                      onClick={handleCopy}
+                      className="p-1.5 text-[#718096] hover:text-[#2D3748] hover:bg-gray-50 rounded-md transition-all"
+                      title="Salin ke Clipboard"
+                    >
+                      {isCopied ? <Check size={16} className="text-[#38A169]" /> : <Copy size={16} />}
+                    </button>
+                    <div className="w-[1px] h-4 bg-gray-200"></div>
+                    <button
+                      onClick={handleDownload}
+                      className="p-1.5 text-[#718096] hover:text-[#2D3748] hover:bg-gray-50 rounded-md transition-all"
+                      title="Unduh (.txt)"
+                    >
+                      <Download size={16} />
+                    </button>
+                    <div className="w-[1px] h-4 bg-gray-200"></div>
+                  </div>
                 </div>
               )}
 
               {/* BENTO GRID */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-4">
-                
+
                 {/* BENTO 1: Ringkasan & Topik Utama */}
                 <Card className={`md:col-span-2 p-6 ${appState === 'result' ? 'reveal-1' : ''}`}>
                   {appState === 'loading' ? (
@@ -387,7 +392,7 @@ export default function Meeting() {
                     <div>
                       <h3 className="font-bold text-[#2D3748] text-[15px] mb-3">Ringkasan Inti Rapat</h3>
                       <p className="text-[14px] md:text-[15px] leading-[1.6] text-[#4A5568] mb-5">{ringkasan}</p>
-                      
+
                       {topikUtama.length > 0 && (
                         <div className="pt-4 border-t border-gray-100">
                           <div className="flex items-center gap-1.5 text-xs font-bold text-[#718096] uppercase tracking-wider mb-2.5">

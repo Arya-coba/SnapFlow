@@ -168,13 +168,6 @@ export default function Summarizer() {
         showToast('File ringkasan (.txt) berhasil diunduh!');
     };
 
-    // Fungsi 3: Menyimpan ke Riwayat Database (Simulasi Frontend Umpan Balik)
-    const handleSave = () => {
-        // Logika ini mensimulasikan penyimpanan sukses. 
-        // Jika nanti ingin dihubungkan, kamu bisa menembak endpoint history database internal.
-        showToast('Dokumen berhasil disimpan ke dalam menu Riwayat!');
-    };
-
 
     return (
         <div className="flex-1 flex flex-col pt-2 h-full animate-slide-up">
@@ -350,13 +343,6 @@ export default function Summarizer() {
                                         <Download size={16} />
                                     </button>
                                     <div className="w-[1px] h-4 bg-gray-200"></div>
-                                    <button 
-                                        onClick={handleSave} 
-                                        className="p-1.5 text-[#718096] hover:text-[#F4A261] hover:bg-white rounded-md transition-all shadow-sm" 
-                                        title="Simpan ke Riwayat Workspace"
-                                    >
-                                        <Save size={16} />
-                                    </button>
                                 </div>
                             </div>
 
