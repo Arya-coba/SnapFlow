@@ -102,8 +102,12 @@ export default function App() {
         <div className={`max-w-6xl mx-auto h-16 flex justify-between items-center px-6 rounded-full transition-all duration-500 ${scrolled ? 'glass-pill' : 'bg-transparent'}`}>
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer">
-            <div className="w-8 h-8 bg-[#F4A261] rounded-full flex items-center justify-center text-white shadow-sm">
-              <Sparkles size={16} strokeWidth={2.5} />
+            <div className="w-10 h-10 bg-[#F4A261]/10 rounded-xl flex items-center justify-center text-[#F4A261]">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                <path d="M12 12v9" />
+                <path d="m8 17 4 4 4-4" />
+              </svg>
             </div>
             <span className="font-extrabold text-xl text-[#2D3748] tracking-tight">SnapFlow</span>
           </div>
@@ -517,7 +521,13 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
             <div className="space-y-6">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#F4A261] rounded-lg flex items-center justify-center text-white"><Sparkles size={16} strokeWidth={2.5} /></div>
+                <div className="w-10 h-10 bg-[#F4A261]/10 rounded-xl flex items-center justify-center text-[#F4A261]">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                    <path d="M12 12v9" />
+                    <path d="m8 17 4 4 4-4" />
+                  </svg>
+                </div>
                 <span className="font-extrabold text-2xl text-white tracking-tight">SnapFlow</span>
               </div>
               <p className="text-[#94A3B8] text-[14px] leading-relaxed font-medium">Memberdayakan ruang kerja masa depan melalui ekstraksi dokumen berbasis AI dan pemrosesan yang otomatis, aman, dan dapat diandalkan.</p>
