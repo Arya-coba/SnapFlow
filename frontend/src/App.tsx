@@ -6,25 +6,28 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Classify from './pages/Classify';
 import Meeting from './pages/Meeting';
-import History from './pages/History';
+import HistoryDocs from './pages/History-Docs';
+import HistoryMeet from './pages/History-Meet';
+import LandingPage from './Landing-Page';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-        {/* Semua halaman yang ada di dalam MainLayout akan memiliki Sidebar dan Topbar */}
+        <Route index element={<Navigate to="/landing-page" replace />} />
+        <Route path="landing-page" element={<LandingPage />} />
+        
         <Route path="/" element={<MainLayout />}>
-          
-          {/* Default saat buka aplikasi, kita arahkan langsung ke halaman QA dulu */}
-          <Route index element={<Navigate to="/dashboard" replace />} />
+
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="klasifikasi" element={<Classify />} />
           <Route path="qa" element={<QA />} />
           <Route path="ringkasan" element={<Summarizer />} />
           <Route path="rapat" element={<Meeting />} />
-          <Route path="riwayat" element={<History />} />
-          
+          <Route path="riwayat-dokumen" element={<HistoryDocs />} />
+          <Route path="riwayat-rapat" element={<HistoryMeet />} />
+
         </Route>
       </Routes>
     </Router>
