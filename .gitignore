@@ -1,0 +1,74 @@
+# ── Environment & Secrets ─────────────────────────────────────────────────────
+.env
+*.env
+!.env.example
+frontend/.env.local
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ── Virtual environment ───────────────────────────────────────────────────────
+venv/
+env/
+.venv/
+
+# ── Model files (besar — auto-download via model_downloader.py) ───────────────
+model/saved_model/
+# Kecualikan .gitkeep agar folder tracked oleh git
+!model/saved_model/.gitkeep
+
+# ── Data mentah ───────────────────────────────────────────────────────────────
+data/raw/*
+!data/raw/.gitkeep
+
+# ── Database ──────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+backend/snapflow.db
+
+# ── Jupyter checkpoints ───────────────────────────────────────────────────────
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+frontend/node_modules/
+# dist DI-INCLUDE ke repo agar HuggingFace Spaces bisa serve React build
+# tanpa perlu npm install + npm run build di container
+# !frontend/dist — JANGAN uncomment ini, dist sudah masuk tracking
+frontend/dist-ssr/
+*.local
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+
+# ── Training output sementara (Colab artifacts) ───────────────────────────────
+results_cat_*/
+results_pri_*/
+confusion_matrix_*.png
+
+# ── File zip & binary besar ───────────────────────────────────────────────────
+*.zip
+*.rar
+*.tar.gz

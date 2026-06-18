@@ -1,0 +1,96 @@
+/* src/index.css */
+@import "tailwindcss";
+
+@theme {
+  --color-orange-kalem: #F4A261;
+  --font-sans: "Plus Jakarta Sans", Inter, sans-serif;
+}
+
+body {
+  background-color: #FDFDF9;
+  font-family: var(--font-sans);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
+
+/* Animasi */
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes dropdownSlide { from { opacity: 0; transform: translateY(-10px); scale: 0.95; } to { opacity: 1; transform: translateY(0); scale: 1; } }
+.animate-dropdown { animation: dropdownSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; transform-origin: top right; }
+
+@keyframes slideLeftFade { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+.animate-toast { animation: slideLeftFade 0.4s ease-out forwards; }
+
+.typing-dot { width: 6px; height: 6px; background-color: #A0AEC0; border-radius: 50%; display: inline-block; animation: bounce 1.4s infinite ease-in-out both; }
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.animate-shimmer {
+  background: #f6f7f8;
+  background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+  background-repeat: no-repeat;
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear forwards;
+}
+
+/* Animasi Khusus Halaman Login */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+@keyframes float-delayed {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+@keyframes shine {
+  100% { left: 200%; }
+}
+.animate-float { animation: float 5s ease-in-out infinite; }
+.animate-float-delayed { animation: float-delayed 4s ease-in-out infinite 1s; }
+
+/* Animasi Pemindai (Scanner) untuk Halaman Klasifikasi */
+@keyframes scan {
+  0% { top: 0; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+.animate-scanner { 
+  animation: scan 1.5s linear infinite; 
+}
+
+/* Animasi Staggered Bento Grid Asisten Rapat */
+@keyframes fadeUp { 
+  from { opacity: 0; transform: translateY(30px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+.reveal-1 { opacity: 0; animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0s; }
+.reveal-2 { opacity: 0; animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.1s; }
+.reveal-3 { opacity: 0; animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.2s; }
+.reveal-4 { opacity: 0; animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.3s; }
+
+/* Animasi Khusus Drawer (Panel Geser Kanan) di Halaman Riwayat */
+@keyframes drawerSlideIn { 
+  from { transform: translateX(100%); } 
+  to { transform: translateX(0); } 
+}
+.animate-drawer { animation: drawerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes fadeInOverlay { 
+  from { opacity: 0; backdrop-filter: blur(0px); } 
+  to { opacity: 1; backdrop-filter: blur(3px); } 
+}
+.animate-overlay { animation: fadeInOverlay 0.3s ease-out forwards; }
