@@ -3,10 +3,10 @@ fastapi==0.115.0
 uvicorn[standard]==0.30.6
 python-multipart==0.0.9
 
-# ── Frontend ──────────────────────────────────────────────
-streamlit==1.38.0
-plotly==5.24.1
-pandas==2.2.3
+# ── Authentication ────────────────────────────────────────
+PyJWT==2.9.0
+google-auth==2.35.0
+requests==2.32.3
 
 # ── ML & Deep Learning ────────────────────────────────────
 torch==2.4.1

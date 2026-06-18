@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { API_ENDPOINTS } from '../config/api';
 
 type DocumentData = {
   id: number;
@@ -34,7 +35,7 @@ export default function Riwayat() {
   const fetchHistory = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/history/documents?limit=100');
+      const response = await fetch(`${API_ENDPOINTS.historyDocuments}?limit=100`);
       const result = await response.json();
 
       if (!response.ok) throw new Error(result.detail || "Gagal mengambil riwayat");
@@ -66,7 +67,7 @@ export default function Riwayat() {
     if (!selectedDoc) return;
     
     try {
-      // await fetch(`http://127.0.0.1:8000/history/documents/${selectedDoc.id}`, { method: 'DELETE' });
+      await fetch(`${API_ENDPOINTS.historyDocuments}/${selectedDoc.id}`, { method: 'DELETE' });
       setDocuments(documents.filter(d => d.id !== selectedDoc.id));
       closeDrawer();
       showToast('Dokumen berhasil dihapus permanen dari sistem.');

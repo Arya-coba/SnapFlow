@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function Klasifikasi() {
   const [appState, setAppState] = useState<'idle' | 'processing' | 'result'>('idle');
@@ -62,7 +63,7 @@ export default function Klasifikasi() {
     setTimeout(() => setLoadingText('AI sedang menganalisis...'), 1500);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/classify', {
+      const response = await fetch(API_ENDPOINTS.classify, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

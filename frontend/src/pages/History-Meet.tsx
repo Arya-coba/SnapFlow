@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { API_ENDPOINTS } from '../config/api';
 
 type MeetingData = {
   id: number;
@@ -32,7 +33,7 @@ export default function RiwayatRapat() {
   const fetchMeetingHistory = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/history/meetings?limit=100');
+      const response = await fetch(`${API_ENDPOINTS.historyMeetings}?limit=100`);
       const result = await response.json();
 
       if (!response.ok) throw new Error(result.detail || "Gagal mengambil riwayat rapat");
@@ -88,7 +89,7 @@ export default function RiwayatRapat() {
     if (!selectedMeeting) return;
     
     try {
-      // await fetch(`http://127.0.0.1:8000/history/meetings/${selectedMeeting.id}`, { method: 'DELETE' });
+      await fetch(`${API_ENDPOINTS.historyMeetings}/${selectedMeeting.id}`, { method: 'DELETE' });
       setMeetings(meetings.filter(m => m.id !== selectedMeeting.id));
       closeDrawer();
       showToast('Riwayat rapat berhasil dihapus dari tampilan.');

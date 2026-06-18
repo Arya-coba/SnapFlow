@@ -1,20 +1,31 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, FileText, Sparkles, Check } from 'lucide-react';
+import {
+    User,
+    Mail,
+    Lock,
+    Eye,
+    EyeOff,
+    FileText,
+    Sparkles,
+    Check,
+    AlertCircle
+} from 'lucide-react';
 import Button from '../components/ui/Button';
 import { useGoogleLogin } from '@react-oauth/google';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
-export default function Login() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-
+export default function Register() {
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [companyName, setCompanyName] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const [isRemembered, setIsRemembered] = useState(false);
 
     const [errorMsg, setErrorMsg] = useState('');
     const [toast, setToast] = useState({ visible: false, message: '' });
@@ -26,103 +37,105 @@ export default function Login() {
         setTimeout(() => setToast({ visible: false, message: '' }), 3000);
     };
 
-    const saveSession = (accessToken: string, user: unknown) => {
-        localStorage.setItem('snapflow_token', accessToken);
+    const saveAuth = (user: {
+        name: string;
+        email: string;
+        picture?: string | null;
+        role: string;
+    }) => {
+        localStorage.setItem('snapflow_auth', 'true');
         localStorage.setItem('snapflow_user', JSON.stringify(user));
-
-        // Bersihkan key lama biar tidak bentrok
-        localStorage.removeItem('token');
-        localStorage.removeItem('userData');
-        localStorage.removeItem('snapflow_auth');
     };
 
-    // 1. LOGIN STANDAR KE BACKEND
-    const handleLogin = async (e: FormEvent) => {
+    // 1. REGISTER MANUAL SEMENTARA
+    const handleRegister = (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
         setErrorMsg('');
 
-        try {
-            const res = await fetch(`${API_URL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                }),
+        if (!fullName.trim()) {
+            setErrorMsg('Nama lengkap tidak boleh kosong.');
+            return;
+        }
+
+        if (!email.trim()) {
+            setErrorMsg('Email tidak boleh kosong.');
+            return;
+        }
+
+        if (password.length < 6) {
+            setErrorMsg('Kata sandi minimal 6 karakter.');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setErrorMsg('Konfirmasi kata sandi tidak sama.');
+            return;
+        }
+
+        setIsLoading(true);
+
+        setTimeout(() => {
+            saveAuth({
+                name: fullName,
+                email,
+                picture: null,
+                role: 'user'
             });
 
-            const data = await res.json();
-
-            if (!res.ok || !data.success) {
-                throw new Error(data.detail || data.message || 'Login gagal.');
-            }
-
-            saveSession(data.access_token, data.user);
-
-            showToast('Login berhasil. Mengalihkan ke Dashboard...');
+            setIsLoading(false);
+            showToast('Akun berhasil dibuat. Mengalihkan ke Dashboard...');
 
             setTimeout(() => {
                 navigate('/dashboard', { replace: true });
-            }, 700);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Terjadi kesalahan saat login.';
-            setErrorMsg(message);
-        } finally {
-            setIsLoading(false);
-        }
+            }, 1000);
+        }, 1200);
     };
 
-    // 2. LOGIN GOOGLE KE BACKEND
-    const handleGoogleLogin = useGoogleLogin({
+    // 2. REGISTER / LOGIN GOOGLE
+    const handleGoogleRegister = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             setIsGoogleLoading(true);
             setErrorMsg('');
 
             try {
-                const res = await fetch(`${API_URL}/auth/google`, {
-                    method: 'POST',
+                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
                     headers: {
-                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${tokenResponse.access_token}`,
                     },
-                    body: JSON.stringify({
-                        access_token: tokenResponse.access_token,
-                    }),
                 });
 
-                const data = await res.json();
+                const userInfo = await res.json();
 
-                if (!res.ok || !data.success) {
-                    throw new Error(data.detail || data.message || 'Login Google gagal.');
-                }
+                saveAuth({
+                    name: userInfo.name || 'Google User',
+                    email: userInfo.email,
+                    picture: userInfo.picture || null,
+                    role: 'user'
+                });
 
-                saveSession(data.access_token, data.user);
-
-                showToast('Login Google berhasil. Mengalihkan ke Dashboard...');
+                setIsGoogleLoading(false);
+                showToast('Pendaftaran Google berhasil. Mengalihkan ke Dashboard...');
 
                 setTimeout(() => {
                     navigate('/dashboard', { replace: true });
-                }, 700);
+                }, 1000);
             } catch (error) {
-                const message = error instanceof Error ? error.message : 'Gagal autentikasi dengan Google.';
-                setErrorMsg(message);
-            } finally {
                 setIsGoogleLoading(false);
+                setErrorMsg('Gagal mengambil data autentikasi dari Google.');
             }
         },
         onError: () => {
-            setErrorMsg('Proses masuk dengan Google dibatalkan.');
-        },
+            setErrorMsg('Proses daftar dengan Google dibatalkan.');
+        }
     });
 
-    const handleRegister = () => {
-        navigate('/register');
+    const handleGoLogin = () => {
+        navigate('/login');
     };
 
     return (
         <div className="min-h-screen bg-[#FDFDF9] flex w-full overflow-hidden relative">
+
             {/* Notifikasi Toast */}
             {toast.visible && (
                 <div className="fixed top-6 right-6 z-[100] bg-white px-5 py-3.5 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] border-l-4 border-[#38A169] flex items-center gap-3 animate-toast">
@@ -180,6 +193,7 @@ export default function Login() {
             {/* AREA KANAN */}
             <div className="w-full lg:w-[60%] bg-white flex items-center justify-center p-6 sm:p-12 md:p-20 relative">
                 <div className="w-full max-w-[420px]">
+
                     <div className="mb-8">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-10 h-10 bg-[#F4A261]/10 rounded-xl flex items-center justify-center text-[#F4A261]">
@@ -195,20 +209,42 @@ export default function Login() {
                         </div>
 
                         <h2 className="text-2xl font-semibold text-[#2D3748] mb-2">
-                            Selamat Datang Kembali 👋
+                            Buat Akun Baru 
                         </h2>
                         <p className="text-sm text-[#718096] font-normal">
-                            Silakan masuk untuk mengelola dokumen Anda.
+                            Daftar untuk mulai mengelola dokumen dengan bantuan AI.
                         </p>
                     </div>
 
                     {errorMsg && (
-                        <div className="mb-6 p-3.5 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl font-medium animate-slide-up text-center shadow-sm">
-                            {errorMsg}
+                        <div className="mb-6 p-3.5 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl font-medium animate-slide-up text-center shadow-sm flex items-center justify-center gap-2">
+                            <AlertCircle size={16} />
+                            <span>{errorMsg}</span>
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} className="space-y-5">
+                    <form onSubmit={handleRegister} className="space-y-5">
+
+                        {/* Nama Lengkap */}
+                        <div className="space-y-2">
+                            <label className="block text-[12px] font-bold text-[#2D3748] tracking-wide">
+                                Nama Lengkap
+                            </label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <User size={18} className="text-[#A0AEC0] group-focus-within:text-[#F4A261] transition-colors" />
+                                </div>
+                                <input
+                                    type="text"
+                                    required
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    placeholder="Nama lengkap Anda"
+                                    className="w-full h-[48px] bg-[#F7FAFC] border border-transparent rounded-xl pl-11 pr-4 text-sm text-[#2D3748] placeholder-[#A0AEC0] outline-none transition-all duration-300 focus:bg-white focus:border-[#F4A261] focus:shadow-[0_0_0_4px_rgba(244,162,97,0.15)] hover:bg-gray-50"
+                                />
+                            </div>
+                        </div>
+
                         {/* Email */}
                         <div className="space-y-2">
                             <label className="block text-[12px] font-bold text-[#2D3748] tracking-wide">
@@ -229,6 +265,25 @@ export default function Login() {
                             </div>
                         </div>
 
+                        {/* Nama Perusahaan */}
+                        <div className="space-y-2">
+                            <label className="block text-[12px] font-bold text-[#2D3748] tracking-wide">
+                                Nama Perusahaan / Organisasi
+                            </label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <FileText size={18} className="text-[#A0AEC0] group-focus-within:text-[#F4A261] transition-colors" />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={companyName}
+                                    onChange={(e) => setCompanyName(e.target.value)}
+                                    placeholder="Contoh: SnapFlow Demo"
+                                    className="w-full h-[48px] bg-[#F7FAFC] border border-transparent rounded-xl pl-11 pr-4 text-sm text-[#2D3748] placeholder-[#A0AEC0] outline-none transition-all duration-300 focus:bg-white focus:border-[#F4A261] focus:shadow-[0_0_0_4px_rgba(244,162,97,0.15)] hover:bg-gray-50"
+                                />
+                            </div>
+                        </div>
+
                         {/* Password */}
                         <div className="space-y-2">
                             <label className="block text-[12px] font-bold text-[#2D3748] tracking-wide">
@@ -243,7 +298,7 @@ export default function Login() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
+                                    placeholder="Minimal 6 karakter"
                                     className="w-full h-[48px] bg-[#F7FAFC] border border-transparent rounded-xl pl-11 pr-11 text-sm text-[#2D3748] placeholder-[#A0AEC0] outline-none transition-all duration-300 focus:bg-white focus:border-[#F4A261] focus:shadow-[0_0_0_4px_rgba(244,162,97,0.15)] hover:bg-gray-50"
                                 />
                                 <button
@@ -256,33 +311,34 @@ export default function Login() {
                             </div>
                         </div>
 
-                        {/* Ingat Saya & Lupa Sandi */}
-                        <div className="flex items-center justify-between pt-1 pb-1">
-                            <label className="flex items-center cursor-pointer group">
-                                <div className="relative flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        className="peer sr-only"
-                                        checked={isRemembered}
-                                        onChange={() => setIsRemembered(!isRemembered)}
-                                    />
-                                    <div className="w-4 h-4 bg-[#F7FAFC] border border-[#CBD5E0] rounded-[4px] flex items-center justify-center transition-all duration-200 peer-checked:bg-[#F4A261] peer-checked:border-[#F4A261] group-hover:border-[#F4A261]/50">
-                                        <svg className={`w-3 h-3 text-white transform transition-transform duration-200 ${isRemembered ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <span className="ml-2.5 text-sm text-[#718096] select-none group-hover:text-[#2D3748] transition-colors">
-                                    Ingat Saya
-                                </span>
+                        {/* Konfirmasi Password */}
+                        <div className="space-y-2">
+                            <label className="block text-[12px] font-bold text-[#2D3748] tracking-wide">
+                                Konfirmasi Kata Sandi
                             </label>
-
-                            <a href="#" className="text-sm text-[#F4A261] font-medium hover:underline hover:text-[#E88D67] transition-all">
-                                Lupa Kata Sandi?
-                            </a>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <Lock size={18} className="text-[#A0AEC0] group-focus-within:text-[#F4A261] transition-colors" />
+                                </div>
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    required
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Ulangi kata sandi"
+                                    className="w-full h-[48px] bg-[#F7FAFC] border border-transparent rounded-xl pl-11 pr-11 text-sm text-[#2D3748] placeholder-[#A0AEC0] outline-none transition-all duration-300 focus:bg-white focus:border-[#F4A261] focus:shadow-[0_0_0_4px_rgba(244,162,97,0.15)] hover:bg-gray-50"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#A0AEC0] hover:text-[#2D3748] transition-colors focus:outline-none"
+                                >
+                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Tombol Login */}
+                        {/* Tombol Register */}
                         <Button
                             type="submit"
                             disabled={isLoading || isGoogleLoading}
@@ -292,11 +348,9 @@ export default function Login() {
                             {isLoading ? (
                                 <div className="flex items-center gap-2">
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    <span className="font-medium text-sm">Memproses...</span>
+                                    <span className="font-medium text-sm">Membuat Akun...</span>
                                 </div>
-                            ) : (
-                                'Masuk ke SnapFlow'
-                            )}
+                            ) : 'Daftar ke SnapFlow'}
                         </Button>
 
                         {/* Divider */}
@@ -305,9 +359,7 @@ export default function Login() {
                                 <div className="w-full border-t border-[#E2E8F0]"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-3 bg-white text-[#A0AEC0] text-[13px]">
-                                    atau
-                                </span>
+                                <span className="px-3 bg-white text-[#A0AEC0] text-[13px]">atau</span>
                             </div>
                         </div>
 
@@ -315,7 +367,7 @@ export default function Login() {
                         <Button
                             type="button"
                             variant="secondary"
-                            onClick={() => handleGoogleLogin()}
+                            onClick={() => handleGoogleRegister()}
                             disabled={isLoading || isGoogleLoading}
                             className="w-full h-[50px] relative font-medium"
                         >
@@ -330,27 +382,28 @@ export default function Login() {
                                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                                     </svg>
                                     <span className="text-[15px] text-[#4A5568]">
-                                        Masuk dengan Google
+                                        Daftar dengan Google
                                     </span>
                                 </>
                             )}
                         </Button>
                     </form>
 
-                    {/* Register */}
+                    {/* Login */}
                     <div className="mt-8 text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
                         <p className="text-[13px] text-[#718096]">
-                            Belum memiliki akun?{' '}
+                            Sudah memiliki akun?{' '}
                             <button
                                 type="button"
-                                onClick={handleRegister}
+                                onClick={handleGoLogin}
                                 disabled={isLoading || isGoogleLoading}
                                 className="font-bold text-[#F4A261] hover:text-[#E88D67] transition-colors hover:underline underline-offset-4 disabled:opacity-50"
                             >
-                                Daftar sekarang
+                                Masuk sekarang
                             </button>
                         </p>
                     </div>
+
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ import {
   ChevronRight, Download, Loader2, Plus, Mic, Bot, Clock, ArrowRight
 } from 'lucide-react';
 import Card from '../components/ui/Card';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
@@ -15,14 +16,14 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/stats');
+        const response = await fetch(API_ENDPOINTS.stats);
         const jsonStats = await response.json();
         
         // Perbaikan: Langsung simpan jsonStats, karena datanya ada di root (sejajar dengan success)
         if (jsonStats.success) setStatsData(jsonStats);
 
         // Ambil 4 dokumen terbaru agar tampilan ringkas
-        const resHistory = await fetch('http://127.0.0.1:8000/history/documents?limit=4');
+        const resHistory = await fetch(`${API_ENDPOINTS.historyDocuments}?limit=4`);
         const jsonHistory = await resHistory.json();
         
         // Untuk history, datanya dibungkus di dalam .data

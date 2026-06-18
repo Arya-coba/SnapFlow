@@ -159,7 +159,7 @@ export default function App() {
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100 text-orange-600 text-[12px] font-bold mb-6 animate-float-fast">
-            <Sparkles size={14} /> Didukung RAG AI Mutakhir
+            <Sparkles size={14} /> Ubah Cara Kerja Anda
           </div>
           <h1 className="text-4xl md:text-[64px] font-extrabold text-[#2D3748] tracking-tight leading-[1.1] mb-6">
             Otomasi Ruang Kerja. <br />

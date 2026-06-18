@@ -14,6 +14,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# ── Auto-download model jika belum ada (untuk HuggingFace Spaces / fresh clone) ──
+try:
+    from model_downloader import ensure_models_downloaded
+    ensure_models_downloaded()
+except ImportError:
+    pass  # Skip jika file belum ada (development lokal dengan model manual)
+
 # ── Konstanta ─────────────────────────────────────────────────────────────────
 MODEL_PATH   = os.getenv("MODEL_PATH", "model/saved_model")
 MODEL_NAME   = os.getenv("MODEL_NAME", "indobenchmark/indobert-base-p1")
@@ -63,8 +70,8 @@ class IndoBERTClassifier:
             dict: { "success": bool, "error": str | None }
         """
         try:
-            kategori_path  = os.path.join(MODEL_PATH, "kategori")
-            prioritas_path = os.path.join(MODEL_PATH, "prioritas")
+            kategori_path  = os.path.join(MODEL_PATH, "kategori", "model_kategori")
+            prioritas_path = os.path.join(MODEL_PATH, "prioritas", "model_prioritas")
 
             # Cek apakah model sudah ada
             if not os.path.exists(kategori_path):
@@ -185,7 +192,7 @@ class SVMClassifier:
     def load(self) -> dict:
         """Load model SVM dari disk."""
         try:
-            svm_path = os.path.join(MODEL_PATH, "svm")
+            svm_path = os.path.join(MODEL_PATH, "svm", "model_svm")
 
             if not os.path.exists(svm_path):
                 return {

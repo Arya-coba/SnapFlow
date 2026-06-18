@@ -98,7 +98,7 @@ def get_routing(kategori: str, prioritas: str = "Sedang") -> dict:
         }
     """
     # Normalisasi input
-    kategori  = kategori.strip() if kategori else ""
+    kategori = str(kategori).strip() if kategori is not None else ""
     prioritas = prioritas.strip() if prioritas else "Sedang"
 
     # Validasi prioritas

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { API_ENDPOINTS } from '../config/api';
 
 // Definisi tipe data untuk UI
 interface Task {
@@ -42,7 +43,7 @@ export default function Meeting() {
   const [peserta, setPeserta] = useState<Peserta[]>([]);
   const [catatanTambahan, setCatatanTambahan] = useState<string>('');
 
-  const API_URL = 'http://127.0.0.1:8000/meeting';
+  const API_URL = API_ENDPOINTS.meeting;
 
   const showToast = (message: string) => {
     setToast({ visible: true, message });

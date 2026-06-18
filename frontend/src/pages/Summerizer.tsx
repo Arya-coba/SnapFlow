@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function Summarizer() {
     const [activeTab, setActiveTab] = useState<'text' | 'pdf'>('text');
@@ -19,7 +20,7 @@ export default function Summarizer() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Konfigurasi URL API Backend FastAPI
-    const API_URL = 'http://127.0.0.1:8000/summarize';
+    const API_URL = API_ENDPOINTS.summarize;
 
     // Menghitung jumlah kata
     const wordCount = inputText.trim().split(/\s+/).filter(w => w.length > 0).length;

@@ -2,10 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { UploadCloud, FileCode2, Search, Download, Send, AlertCircle } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { API_ENDPOINTS } from '../config/api';
 
 // Asumsi endpoint FastAPI Anda
-const API_URL_INDEX = 'http://127.0.0.1:8000/qa/index';
-const API_URL_ASK = 'http://127.0.0.1:8000/qa/ask';
+const API_URL_INDEX = API_ENDPOINTS.qaIndex;
+const API_URL_ASK = API_ENDPOINTS.qaAsk;
 
 export default function QA() {
   const [appState, setAppState] = useState<'idle' | 'chat'>('idle');
