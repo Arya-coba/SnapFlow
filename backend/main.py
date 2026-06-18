@@ -16,6 +16,7 @@ from meeting   import summarize_meeting, format_meeting_output
 from rag       import get_rag_pipeline
 from routing   import get_routing, get_all_divisions
 from database  import get_db
+from auth import router as auth_router
 
 load_dotenv()
 
@@ -35,13 +36,14 @@ app.add_middleware(
     allow_headers     = ["*"],
 )
 
+app.include_router(auth_router)
+
 # ── Load models saat startup ──────────────────────────────────────────────────
 @app.on_event("startup")
 async def startup_event():
     print("\n🚀 SnapFlow API starting up...")
     classifier = get_classifier()
     print("✅ Semua model siap!")
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # REQUEST / RESPONSE MODELS
