@@ -306,8 +306,14 @@ def list_divisions():
 # Semua route yang tidak cocok dengan /api/* dikembalikan ke index.html
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Path ke React build — relatif dari lokasi main.py (backend/)
-STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+# Path ke React build — gunakan absolute path untuk reliability di Docker
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "dist")
+STATIC_DIR = os.path.normpath(STATIC_DIR)
+
+print(f"📁 STATIC_DIR: {STATIC_DIR}")
+print(f"📁 STATIC_DIR exists: {os.path.isdir(STATIC_DIR)}")
+if os.path.isdir(STATIC_DIR):
+    print(f"📁 STATIC_DIR contents: {os.listdir(STATIC_DIR)}")
 
 if os.path.isdir(STATIC_DIR):
     # Mount folder assets (JS, CSS, gambar)
