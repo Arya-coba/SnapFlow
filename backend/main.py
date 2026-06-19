@@ -321,9 +321,17 @@ if os.path.isdir(STATIC_DIR):
     # Mount folder assets (JS, CSS, gambar)
     app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
 
-    # Semua route React — kembalikan index.html agar React Router bekerja
+    # Root path — serve index.html
+    @app.get("/")
+    def serve_root():
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+    # Semua route React lainnya — kembalikan index.html agar React Router bekerja
     @app.get("/{full_path:path}")
     def serve_react(full_path: str):
+        # Jangan intercept /api/* — biarkan FastAPI handle
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
         index_path = os.path.join(STATIC_DIR, "index.html")
         return FileResponse(index_path)
 
