@@ -9,7 +9,7 @@ import shutil
 
 # ── Konfigurasi HuggingFace Hub ───────────────────────────────────────────────
 # Repo: https://huggingface.co/AryaCoba/snapflow-models
-HF_REPO_ID  = "AryaCoba/snapflow-models"
+HF_REPO_ID   = "AryaCoba/snapflow-models"
 HF_REPO_TYPE = "model"
 
 MODEL_FILES = [
