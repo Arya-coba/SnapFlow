@@ -322,10 +322,13 @@ if os.path.isdir(STATIC_DIR):
     @app.get("/{full_path:path}")
     def serve_react(full_path: str):
         # Jangan intercept /api/* — biarkan FastAPI handle
-        if full_path.startswith("api/"):
+        if full_path.startswith("api/") or full_path == "api":
             raise HTTPException(status_code=404, detail="Not found")
-        index_path = os.path.join(STATIC_DIR, "index.html")
-        return FileResponse(index_path)
+        # Untuk file statis yang tidak ditemukan, tetap serve index.html
+        file_path = os.path.join(STATIC_DIR, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
     print(f"✅ Serving React build dari: {STATIC_DIR}")
 else:
