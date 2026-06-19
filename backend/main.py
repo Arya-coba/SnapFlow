@@ -75,16 +75,8 @@ class IndexRequest(BaseModel):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ROOT & HEALTH
+# HEALTH CHECK
 # ══════════════════════════════════════════════════════════════════════════════
-@app.get("/api")
-def root():
-    return {
-        "app"    : "SnapFlow — AI Workplace Assistant",
-        "version": "1.0.0",
-        "status" : "running",
-    }
-
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
@@ -424,27 +416,7 @@ class IndexRequest(BaseModel):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ROOT
-# ══════════════════════════════════════════════════════════════════════════════
-@app.get("/")
-def root():
-    return {
-        "app"    : "SnapFlow — AI Workplace Assistant",
-        "version": "1.0.0",
-        "status" : "running",
-        "endpoints": [
-            "/classify",
-            "/summarize",
-            "/meeting",
-            "/qa/index",
-            "/qa/ask",
-            "/qa/reset",
-            "/history/documents",
-            "/history/meetings",
-            "/stats",
-            "/divisions"
-        ]
-    }
+# ROOT dipindahkan ke static files serving di bawah
 
 @app.get("/health")
 def health():
