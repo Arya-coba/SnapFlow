@@ -315,10 +315,11 @@ print(f"📁 STATIC_DIR exists: {os.path.isdir(STATIC_DIR)}")
 if os.path.isdir(STATIC_DIR):
     print(f"📁 STATIC_DIR contents: {os.listdir(STATIC_DIR)}")
 
-if os.path.isdir(STATIC_DIR):
-    # Mount folder assets (JS, CSS, gambar)
+# Mount assets folder
+if os.path.isdir(os.path.join(STATIC_DIR, "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
 
+if os.path.isdir(STATIC_DIR):
     # Root path — serve index.html
     @app.get("/")
     def serve_root():
@@ -763,3 +764,23 @@ if __name__ == "__main__":
         port    = int(os.getenv("APP_PORT", 8000)),
         reload  = True
     )
+
+# ── React catch-all routes — HARUS di paling bawah ──────────────────────────
+@app.get("/")
+def serve_root():
+    index = os.path.join(STATIC_DIR, "index.html")
+    if os.path.isfile(index):
+        return FileResponse(index)
+    return {"status": "SnapFlow API running", "frontend": "not found"}
+
+@app.get("/{full_path:path}")
+def serve_react(full_path: str):
+    if full_path.startswith("api/") or full_path == "api":
+        raise HTTPException(status_code=404, detail="Not found")
+    file_path = os.path.join(STATIC_DIR, full_path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    index = os.path.join(STATIC_DIR, "index.html")
+    if os.path.isfile(index):
+        return FileResponse(index)
+    raise HTTPException(status_code=404, detail="Frontend not found")
