@@ -14,7 +14,7 @@ transformers==4.44.2
 datasets==3.0.1
 accelerate==0.34.2
 evaluate==0.4.3
-scikit-learn==1.5.2
+scikit-learn==1.6.1
 numpy==1.26.4
 matplotlib==3.8.4
 seaborn==0.13.2
