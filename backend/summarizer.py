@@ -9,7 +9,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── Init Groq client ──────────────────────────────────────────────────────────
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+_groq_api_key = os.getenv("GROQ_API_KEY")
+if not _groq_api_key:
+    print("⚠️  GROQ_API_KEY tidak ditemukan — summarizer tidak akan berfungsi")
+    client = None
+else:
+    client = Groq(api_key=_groq_api_key)
 
 # ── Konstanta ─────────────────────────────────────────────────────────────────
 MODEL         = "llama-3.1-8b-instant"   # model gratis di Groq
@@ -58,6 +63,15 @@ def summarize_document(text: str) -> dict:
             "summary": [],
             "raw": "",
             "error": "Dokumen kosong — tidak ada teks yang bisa dirangkum."
+        }
+
+    # Cek Groq client
+    if client is None:
+        return {
+            "success": False,
+            "summary": [],
+            "raw": "",
+            "error": "GROQ_API_KEY tidak dikonfigurasi. Set environment variable GROQ_API_KEY."
         }
 
     # Batasi panjang teks agar tidak melebihi context window
